@@ -14,9 +14,6 @@ import (
 // @host      localhost:8082
 // @BasePath  /
 func main() {
-	//github.com/jmoiron/sqlx
-	//github.com/sirupsen/logrus
-	//github.com/spf13/viper
 	logrus.Info("nats-streaming consumer start")
 
 	// Init config
@@ -29,7 +26,7 @@ func main() {
 		logrus.Fatalf("Failed to configure logger: %s", err.Error())
 	}
 
-	// config db
+	// Config db
 	db, err := repository.NewPostgresDb(readDbConfig())
 	if err != nil {
 		logrus.Fatalf("Failed to create db connection: %s", err.Error())

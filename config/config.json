@@ -8,9 +8,9 @@
   "database": {
     "username" : "postgres",
     "password" : "password",
-    "dbname" : "humans",
+    "dbname" : "model",
     "host": "localhost",
-    "port" : "5002",
+    "port" : "5003",
     "sslmode": "disable"
   }
 }

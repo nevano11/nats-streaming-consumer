@@ -1,0 +1,12 @@
+version: '3'
+services:
+  pg-db:
+    image: postgres
+    container_name: wb-l0-postgres
+    ports:
+      - "${X_POSTGRES_PORT:-5432}:5432"
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - ./pgsql/data/:/var/lib/postgresql/data
