@@ -1,0 +1,16 @@
+{
+  "logger": {
+    "log-level": "debug"
+  },
+  "server": {
+    "port": "8082"
+  },
+  "database": {
+    "username" : "postgres",
+    "password" : "password",
+    "dbname" : "humans",
+    "host": "localhost",
+    "port" : "5002",
+    "sslmode": "disable"
+  }
+}
