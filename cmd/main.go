@@ -1,10 +1,15 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"nats-streaming-consumer/internal/handler"
 	"nats-streaming-consumer/internal/repository"
+	"nats-streaming-consumer/internal/service"
+	"net/http"
+	"time"
 )
 
 // @title           Nats-streaming consumer
@@ -31,15 +36,47 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Failed to create db connection: %s", err.Error())
 	}
-	_ = db
 
-	// Config repository
+	// Repository
+	modelRepository := repository.NewPostgresModelRepository(db)
+	cachedRepository := repository.NewCachedRepository(modelRepository)
 
-	// Config service
+	go func() {
+		logrus.Info("Start filling cache from db")
+		err := cachedRepository.FillCacheFromRepository()
+		if err != nil {
+			logrus.Errorf("Failed to load cache from db")
+			return
+		}
+		logrus.Info("End filling cache from db")
+	}()
 
-	// Init and run nats-streaming
+	// Services
+	dbService := service.NewDbServiceDb(repository.NewRepository(cachedRepository))
+	senderService, err := service.NewNatsSenderService("modelChannel")
+	if err != nil {
+		logrus.Fatalf("Failed to create NatsSenderService: %s", err.Error())
+	}
+	consumeService, err := service.NewNatsConsumeService("modelChannel", dbService)
+	if err != nil {
+		logrus.Fatalf("Failed to create NatsConsumeService: %s", err.Error())
+	}
+	defer senderService.Close()
+	defer consumeService.Close()
 
-	// Init and run httpServer
+	// handler
+	han := handler.NewHandler(dbService, senderService)
+
+	// Routes
+	routes := han.InitRoutes()
+
+	// Server
+	server := createServer(viper.GetString("server.port"), routes)
+	logrus.Infof("Server running on http://localhost%s", server.Addr)
+	logrus.Infof("Swagger: http://localhost%s/swagger/index.html", server.Addr)
+	if err := server.ListenAndServe(); err != nil {
+		logrus.Fatalf("Failed to start server: %s", err.Error())
+	}
 }
 
 // Config
@@ -68,5 +105,16 @@ func readDbConfig() repository.DbConfig {
 		Password: viper.GetString("database.password"),
 		DbName:   viper.GetString("database.dbname"),
 		SslMode:  viper.GetString("database.sslmode"),
+	}
+}
+
+// Create server
+func createServer(port string, routes *gin.Engine) *http.Server {
+	return &http.Server{
+		Addr:              ":" + port,
+		Handler:           routes,
+		ReadHeaderTimeout: 2 << 20,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 	}
 }

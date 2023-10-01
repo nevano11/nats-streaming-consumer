@@ -1,45 +1,19 @@
 package entity
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
 
 type Model struct {
-	OrderUid    string `json:"order_uid"`
-	TrackNumber string `json:"track_number"`
-	Entry       string `json:"entry"`
-	Delivery    struct {
-		Name    string `json:"name"`
-		Phone   string `json:"phone"`
-		Zip     string `json:"zip"`
-		City    string `json:"city"`
-		Address string `json:"address"`
-		Region  string `json:"region"`
-		Email   string `json:"email"`
-	} `json:"delivery"`
-	Payment struct {
-		Transaction  string `json:"transaction"`
-		RequestId    string `json:"request_id"`
-		Currency     string `json:"currency"`
-		Provider     string `json:"provider"`
-		Amount       int    `json:"amount"`
-		PaymentDt    int    `json:"payment_dt"`
-		Bank         string `json:"bank"`
-		DeliveryCost int    `json:"delivery_cost"`
-		GoodsTotal   int    `json:"goods_total"`
-		CustomFee    int    `json:"custom_fee"`
-	} `json:"payment"`
-	Items []struct {
-		ChrtId      int    `json:"chrt_id"`
-		TrackNumber string `json:"track_number"`
-		Price       int    `json:"price"`
-		Rid         string `json:"rid"`
-		Name        string `json:"name"`
-		Sale        int    `json:"sale"`
-		Size        string `json:"size"`
-		TotalPrice  int    `json:"total_price"`
-		NmId        int    `json:"nm_id"`
-		Brand       string `json:"brand"`
-		Status      int    `json:"status"`
-	} `json:"items"`
+	OrderUid          string    `json:"order_uid"`
+	TrackNumber       string    `json:"track_number"`
+	Entry             string    `json:"entry"`
+	Delivery          Delivery  `json:"delivery"`
+	Payment           Payment   `json:"payment"`
+	Items             []Item    `json:"items"`
 	Locale            string    `json:"locale"`
 	InternalSignature string    `json:"internal_signature"`
 	CustomerId        string    `json:"customer_id"`
@@ -48,4 +22,45 @@ type Model struct {
 	SmId              int       `json:"sm_id"`
 	DateCreated       time.Time `json:"date_created"`
 	OofShard          string    `json:"oof_shard"`
+}
+
+func (m *Model) String() string {
+	result := strings.Builder{}
+	result.WriteString("Model:{")
+
+	result.WriteString(
+		fmt.Sprintf("OrderUid: %s, TrackNumber: %s, Entry: %s,",
+			m.OrderUid, m.TrackNumber, m.Entry))
+
+	result.WriteString(m.Delivery.String())
+	result.WriteString(",")
+
+	result.WriteString(m.Payment.String())
+	result.WriteString(",")
+
+	result.WriteString("Items: [")
+	for _, v := range m.Items {
+		result.WriteString(v.String())
+		result.WriteString(",")
+	}
+	result.WriteString("]")
+
+	result.WriteString(",Locale: ")
+	result.WriteString(m.Locale)
+	result.WriteString(",InternalSignature: ")
+	result.WriteString(m.InternalSignature)
+	result.WriteString(",CustomerId: ")
+	result.WriteString(m.CustomerId)
+	result.WriteString(",DeliveryService: ")
+	result.WriteString(m.DeliveryService)
+	result.WriteString(",Shardkey: ")
+	result.WriteString(m.Shardkey)
+	result.WriteString(",SmId: ")
+	result.WriteString(strconv.Itoa(m.SmId))
+	result.WriteString(",DateCreated: ")
+	result.WriteString(m.DateCreated.String())
+	result.WriteString(",OofShard: ")
+	result.WriteString(m.OofShard)
+	result.WriteString("}")
+	return result.String()
 }

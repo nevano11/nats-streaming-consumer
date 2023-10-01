@@ -1,4 +1,9 @@
 version: '3'
+
+networks:
+  nats-network:
+    driver: bridge
+
 services:
   pg-db:
     image: postgres
@@ -7,6 +12,28 @@ services:
       - "${X_POSTGRES_PORT:-5432}:5432"
     env_file:
       - .env
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./pgsql/data/:/var/lib/postgresql/data
+  nats:
+    image: nats
+    container_name: nats
+    ports:
+      - "${X_NATS_PORT:-4222}:4222"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - nats-network
+  nats-streaming:
+    image: nats-streaming
+    container_name: nats-streaming
+    env_file:
+      - .env
+    ports:
+      - "4223:4223"
+    depends_on:
+      - nats
+    restart: unless-stopped
+    networks:
+      - nats-network

@@ -12,5 +12,8 @@
     "host": "localhost",
     "port" : "5003",
     "sslmode": "disable"
+  },
+  "nats" : {
+    "cluster-id": "clusterrr"
   }
 }
